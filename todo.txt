@@ -1,0 +1,2 @@
+1. notationRef 튜플 코드 정리, score, turn, notation.
+2. tracking 한번만 값이 나와야 하도록 변경, 현재 값이 여러개 나옴..;
