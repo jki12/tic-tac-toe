@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './App.css';
+import { Engine } from './engine';
 
 const SIZE = 3;
 const EMPTY = 0;
@@ -9,12 +10,7 @@ const USER_MARK = 2;
 
 const test_case1 = [ 2, 2, 0, 1, 0, 0, 0, 0, 0 ]; // 기댓값 = index 2 - 1, defense.
 const test_case2 = [ 2, 0, 0, 1, 1, 0, 2, 0, 2 ]; // 기댓값 = index 5 - 1, offense.
-
-type a =  { // rename.
-  gameResult: number
-  notation: number[] // 기보.
-  log: number[] // stack.
-}
+const test_case3 = [ 2, 2, 0, 1, 1, 0, 2, 1, 2 ]; // free
 
 function App() {
   const tds = document.getElementsByTagName('td');
@@ -50,7 +46,7 @@ function App() {
 
     turnRef.current++;
 
-    console.log( boardRef.current );
+    // console.log( boardRef.current );
   }
 
   /**
@@ -87,30 +83,51 @@ function App() {
   }
 
   const tracking = (k: number) : void => {
-    // console.log('call');
-    if (k === 9) {
-      // if (determineGameResult(copyRef.current) === -1) { alert("something was wrong.."); return; }
+    // console.log(notationRef.current);
+    
+    if (k === 1) { // 이기는 한 수 막자.
+      // let rand = Math.random();
 
-      console.log(notationRef.current[2], determineGameResult(notationRef.current[2]));
+      if (notationRef.current[2][4] !== EMPTY) { // center.
+
+        notationRef.current[2][0] = COM_MARK;
+      }
+      else {
+        if (notationRef.current[2][0] === EMPTY) notationRef.current[2][0] = COM_MARK;
+        else notationRef.current[2][2] = COM_MARK;
+      }
+      
+      return;
+    }
+
+    if (k === 9) {
+      notationRef.current[0] = determineGameResult(notationRef.current[2]);
+      // console.log(notationRef.current[2], notationRef.current[0]);
+
       return;
     }
 
     for (let i = 0; i < SIZE * SIZE; ++i) {
-      // if (test_case2[i] !== 0) continue;
       if (notationRef.current[2][i] !== EMPTY) continue;
       
-      // test_case2[i] = (k % 2 === 1) ? COM_MARK : USER_MARK;
       notationRef.current[1][i] = k;
       notationRef.current[2][i] = (k % 2 === 1) ? COM_MARK : USER_MARK;
 
       const gameResult = determineGameResult(notationRef.current[2]);
+      notationRef.current[0] = gameResult;
 
-      // console.log(test_case1, gameResult);
+      if (determineGameResult(notationRef.current[2]) === 1) { // 이기는 경우.
+        console.log(notationRef.current[2]);
 
-      if (gameResult === -1 || notationRef.current[0] >= gameResult) { // 지거나 현재 예측한 결과 보다 안 좋은 수는 고려 안함. notationRef.current[0] > gameResult
         notationRef.current[1][i] = 0;
         notationRef.current[2][i] = 0;
-        // test_case2[i] = 0;
+
+        return;
+      }
+
+      if (gameResult === -1) {
+        notationRef.current[1][i] = 0;
+        notationRef.current[2][i] = 0;
 
         continue;
       }
@@ -125,14 +142,12 @@ function App() {
   const test = (index : number) => {
     place(index);
 
-    // copyRef.current = [...boardRef.current];
+    notationRef.current[2] = [...boardRef.current];
     tracking(turnRef.current);
-
-    
-    
   }
 
   return (
+    <>
     <table>
       <thead>
         <tr>
@@ -147,12 +162,12 @@ function App() {
       </thead>
       <tbody>
         <tr>
-            <td id="0" onClick={() => { console.log(test_case2); tracking(5) }}> 0 </td>
-            <td id="1" onClick={() => { console.log(notationRef.current); }}> 0 </td>
-            <td id="2" onClick={() => { copy(test_case2, notationRef.current[2]); console.log(test_case2, notationRef.current[2]); tracking(5); }}> 0 </td>
+            <td id="0" onClick={() => { test(0); }}> 0 </td>
+            <td id="1" onClick={() => { test(1); }}> 0 </td>
+            <td id="2" onClick={() => { test(2); }}> 0 </td>
         </tr>
         <tr>
-            <td id="3" onClick={() => { copy(test_case1, notationRef.current[2]); console.log(test_case1, notationRef.current[2]); tracking(3); }}> 0 </td>
+            <td id="3" onClick={() => { test(3); }}> 0 </td>
             <td id="4" onClick={() => { test(4); }}> 0 </td>
             <td id="5" onClick={() => { test(5); }}> 0 </td>
         </tr>
@@ -163,6 +178,9 @@ function App() {
         </tr>
         </tbody>
     </table>
+
+    <button onClick={() => { Engine.init(); console.log(Engine.board); Engine.board[2] = 3; console.log(Engine.board); }}> hooh </button>
+    </>
 
   );
 }
